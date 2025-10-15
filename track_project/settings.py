@@ -130,3 +130,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Add this to your Django settings
 LOGIN_REDIRECT_URL = '/dashboard/'  # Redirect to your dashboard after login
 LOGOUT_REDIRECT_URL = '/'  # Redirect to home after logout
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://shiping-wi22.onrender.com",
+]
