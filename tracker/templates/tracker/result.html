@@ -1,0 +1,513 @@
+{% load tracker_extras %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracking Result - {{ shipment.tracking_number }} | GlobalTrack Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1E40AF',
+                        secondary: '#3B82F6',
+                        accent: '#10B981',
+                        warning: '#F59E0B',
+                        danger: '#EF4444',
+                        dark: '#1F2937',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: #E5E7EB;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #10B981, #3B82F6);
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        .timeline-item {
+            position: relative;
+            padding-left: 2rem;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.5rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #E5E7EB;
+            border: 3px solid white;
+            z-index: 2;
+        }
+        .timeline-item.active::before {
+            background: #10B981;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+        }
+        .timeline-item.completed::before {
+            background: #10B981;
+        }
+        .timeline-connector {
+            position: absolute;
+            left: 5px;
+            top: 1.5rem;
+            bottom: -1rem;
+            width: 2px;
+            background: #E5E7EB;
+            z-index: 1;
+        }
+        .timeline-item:last-child .timeline-connector {
+            display: none;
+        }
+        .timeline-item.completed .timeline-connector {
+            background: #10B981;
+        }
+        .glow-card {
+            background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .glow-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 10s linear infinite;
+        }
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="font-inter bg-gray-50 min-h-screen">
+    
+    {% if shipment %}
+    <!-- Header -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <a href="/" class="flex items-center space-x-2 text-primary hover:text-secondary transition-colors">
+                    <i class="fas fa-arrow-left text-sm"></i>
+                    <span class="font-semibold text-sm">New Tracking</span>
+                </a>
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs text-dark/60">Live Tracking</span>
+                    <div class="w-2 h-2 bg-accent rounded-full animate-pulse"></div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-6">
+        
+        <!-- Main Tracking Card -->
+        <div class="glow-card text-white rounded-xl p-6 mb-6 relative overflow-hidden">
+            <div class="relative z-10">
+                <div class="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-4">
+                    <div class="flex-1">
+                        <h1 class="text-2xl font-bold mb-1">Shipment Tracking</h1>
+                        <p class="text-blue-100 opacity-90 text-sm">Tracking Number: 
+                            <span class="font-mono font-bold text-white">{{ shipment.tracking_number }}</span>
+                        </p>
+                    </div>
+                    <div class="text-left lg:text-right">
+                        <div class="flex items-center gap-2 mb-1">
+                            <i class="fas fa-{{ shipment.status|status_icon }}"></i>
+                            <div class="text-lg font-bold">{{ shipment.get_status_display }}</div>
+                        </div>
+                        <div class="text-blue-100 text-xs">Last Updated: {{ shipment.last_updated|date:"M d, Y H:i" }}</div>
+                    </div>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div class="mb-4">
+                    <div class="flex justify-between text-sm mb-2">
+                        <span>Shipment Progress</span>
+                        <span id="progress-percentage">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-3 gap-3 text-center">
+                    <div class="bg-white/10 rounded-lg p-2">
+                        <div class="text-sm font-bold">{{ shipment.date_created|date:"d" }}</div>
+                        <div class="text-blue-100 text-xs">Created</div>
+                    </div>
+                    <div class="bg-white/10 rounded-lg p-2">
+                        <div class="text-sm font-bold" id="days-in-transit">-</div>
+                        <div class="text-blue-100 text-xs">Days in Transit</div>
+                    </div>
+                    <div class="bg-white/10 rounded-lg p-2">
+                        <div class="text-sm font-bold">{{ shipment.current_location|truncate_words:2 }}</div>
+                        <div class="text-blue-100 text-xs">Current Location</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-6 mb-6">
+            <!-- Left Column - Tracking Info -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Timeline -->
+                <div class="bg-white rounded-xl shadow-sm border p-6">
+                    <h2 class="text-lg font-bold text-dark mb-4 flex items-center">
+                        <i class="fas fa-route text-primary mr-2"></i>
+                        Shipment Journey
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        {% get_timeline_data shipment as timeline_steps %}
+                        {% for step in timeline_steps %}
+                        <div class="timeline-item {% if step.active %}active{% endif %} {% if step.completed %}completed{% endif %}">
+                            <div class="flex items-start space-x-3">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-full {% if step.completed %}bg-green-100{% else %}bg-gray-100{% endif %} flex items-center justify-center">
+                                    <i class="fas fa-{{ step.icon }} text-sm {% if step.completed %}text-green-600{% else %}text-gray-600{% endif %}"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="font-semibold text-dark text-sm {% if step.active %}text-green-600{% endif %}">
+                                            {{ step.name }}
+                                        </h3>
+                                        {% if step.active %}
+                                        <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Current</span>
+                                        {% endif %}
+                                    </div>
+                                    <p class="text-dark/60 text-xs mt-1">{{ step.description }}</p>
+                                    {% if step.completed and step.key == 'delivered' %}
+                                    <div class="mt-2 text-green-600 font-semibold text-xs">
+                                        <i class="fas fa-check-circle mr-1"></i>Delivered on {{ shipment.last_updated|date:"M d, Y" }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if not forloop.last %}
+                            <div class="timeline-connector"></div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Parcel & Payment Info -->
+                <div class="grid md:grid-cols-2 gap-4">
+                    <!-- Parcel Information -->
+                    <div class="bg-white rounded-xl shadow-sm border p-4">
+                        <h3 class="text-base font-bold text-dark mb-3 flex items-center">
+                            <i class="fas fa-box text-primary mr-2"></i>
+                            Parcel Details
+                        </h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-dark/60">Description:</span>
+                                <span class="font-semibold text-right">{{ shipment.parcel_description|default:"Standard Package" }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-dark/60">Weight:</span>
+                                <span class="font-semibold">{{ shipment.parcel_weight }} kg</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-dark/60">Sender:</span>
+                                <span class="font-semibold">{{ shipment.sender_name }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-dark/60">Receiver:</span>
+                                <span class="font-semibold">{{ shipment.receiver_name }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Status -->
+                    <div class="bg-white rounded-xl shadow-sm border p-4">
+                        <h3 class="text-base font-bold text-dark mb-3 flex items-center">
+                            <i class="fas fa-credit-card text-primary mr-2"></i>
+                            Payment Status
+                        </h3>
+                        <div class="text-center py-2">
+                            {% if shipment.payment_status == 'paid' %}
+                            <div class="text-green-600 text-base font-bold mb-1 flex items-center justify-center">
+                                <i class="fas fa-check-circle mr-2"></i>Payment Verified
+                            </div>
+                            <p class="text-dark/60 text-xs">Payment confirmed and processed</p>
+                            {% elif shipment.payment_status == 'awaiting_payment' %}
+                            <div class="text-yellow-600 text-base font-bold mb-1 flex items-center justify-center">
+                                <i class="fas fa-clock mr-2"></i>Under Review
+                            </div>
+                            <p class="text-dark/60 text-xs">Payment proof being verified</p>
+                            {% else %}
+                            <div class="text-gray-600 text-base font-bold mb-1 flex items-center justify-center">
+                                <i class="fas fa-info-circle mr-2"></i>Not Required
+                            </div>
+                            <p class="text-dark/60 text-xs">No payment needed</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Actions & Details -->
+            <div class="space-y-4">
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-xl shadow-sm border p-4">
+                    <h3 class="text-base font-bold text-dark mb-3">Quick Actions</h3>
+                    <div class="space-y-2">
+                        <a href="/print-preview/{{ shipment.tracking_number }}/" 
+                           class="w-full bg-primary hover:bg-secondary text-white py-2 px-3 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300 text-sm">
+                            <i class="fas fa-file-pdf"></i>
+                            <span>Print PDF Report</span>
+                        </a>
+                        {% if shipment.require_payment and shipment.payment_status != 'paid' %}
+                        <a href="/upload-proof/{{ shipment.tracking_number }}/" 
+                           class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300 text-sm">
+                            <i class="fas fa-upload"></i>
+                            <span>Upload Payment</span>
+                        </a>
+                        {% endif %}
+                        <button onclick="refreshTracking()" 
+                                class="w-full bg-gray-700 hover:bg-gray-800 text-white py-2 px-3 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300 text-sm">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>Refresh Status</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="bg-white rounded-xl shadow-sm border p-4">
+                    <h3 class="text-base font-bold text-dark mb-3">Contact Information</h3>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <h4 class="font-semibold text-dark mb-1 text-sm">Sender</h4>
+                            <p class="text-dark/60">{{ shipment.sender_name }}</p>
+                            <p class="text-dark/60 text-xs">{{ shipment.sender_email|encrypt_email }}</p>
+                            <p class="text-dark/60 text-xs">{{ shipment.sender_phone|phone_format }}</p>
+                        </div>
+                        <div class="pt-2 border-t border-gray-200">
+                            <h4 class="font-semibold text-dark mb-1 text-sm">Receiver</h4>
+                            <p class="text-dark/60">{{ shipment.receiver_name }}</p>
+                            <p class="text-dark/60 text-xs">{{ shipment.receiver_email|encrypt_email }}</p>
+                            <p class="text-dark/60 text-xs">{{ shipment.receiver_phone|phone_format }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Parcel Image -->
+                {% if shipment.parcel_image %}
+                <div class="bg-white rounded-xl shadow-sm border p-4">
+                    <h3 class="text-base font-bold text-dark mb-3">Parcel Image</h3>
+                    <img src="{{ shipment.parcel_image.url }}" 
+                         alt="Parcel" 
+                         class="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                         onclick="openImageModal('{{ shipment.parcel_image.url }}')">
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Real-time Updates Section -->
+        <div class="bg-white rounded-xl shadow-sm border p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold text-dark flex items-center">
+                    <i class="fas fa-satellite text-primary mr-2"></i>
+                    Tracking Updates
+                </h2>
+                <div class="flex items-center space-x-2 text-green-600">
+                    <div class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></div>
+                    <span class="text-xs font-semibold" id="last-update">Live</span>
+                </div>
+            </div>
+            <div class="space-y-3" id="updates-container">
+                <!-- Updates will be loaded here -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Image Modal -->
+    <div id="imageModal" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center p-4">
+        <div class="relative max-w-2xl max-h-full">
+            <button onclick="closeImageModal()" class="absolute -top-10 right-0 text-white text-xl hover:text-green-400 transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+            <img id="modalImage" src="" alt="Enlarged view" class="max-w-full max-h-full rounded-lg">
+        </div>
+    </div>
+
+    {% else %}
+    <!-- No Shipment Found -->
+    <div class="container mx-auto px-4 py-12">
+        <div class="max-w-md mx-auto text-center">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+            </div>
+            <h2 class="text-xl font-bold text-dark mb-3">Shipment Not Found</h2>
+            <p class="text-dark/60 mb-6 text-sm">The tracking number doesn't match any shipments in our system.</p>
+            <a href="/" class="inline-block bg-primary hover:bg-secondary text-white px-6 py-2 rounded-lg font-semibold transition-all duration-300 text-sm">
+                Try Another Tracking Number
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <script>
+        // Progress animation
+        function updateProgress() {
+            const progressPercentage = {{ shipment.status|get_status_percentage }};
+            
+            setTimeout(() => {
+                const progressFill = document.getElementById('progress-fill');
+                const progressText = document.getElementById('progress-percentage');
+                if (progressFill && progressText) {
+                    progressFill.style.width = progressPercentage + '%';
+                    progressText.textContent = progressPercentage + '%';
+                }
+            }, 500);
+        }
+
+        // Days in transit calculation
+        function updateDaysInTransit() {
+            const created = new Date("{{ shipment.date_created.isoformat }}");
+            const now = new Date();
+            const diffTime = Math.abs(now - created);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const daysElement = document.getElementById('days-in-transit');
+            if (daysElement) {
+                daysElement.textContent = diffDays;
+            }
+        }
+
+        // Simulate real-time updates
+        function loadUpdates() {
+            const updates = [
+                { time: 'Just now', location: '{{ shipment.current_location }}', message: 'Package scanned at current facility', icon: 'map-marker-alt' },
+                { time: '2 hours ago', location: 'Distribution Center', message: 'Departed from sorting facility', icon: 'truck' }
+            ];
+
+            // Add status-specific updates
+            {% if shipment.status == 'on_way' or shipment.status == 'custom_hold' or shipment.status == 'delivered' %}
+            updates.push({ time: '5 hours ago', location: 'Main Hub', message: 'Arrived at regional hub', icon: 'warehouse' });
+            {% endif %}
+
+            {% if shipment.status == 'on_hold' %}
+            updates.push({ time: '1 hour ago', location: 'Processing Center', message: 'Shipment placed on hold for review', icon: 'pause-circle' });
+            {% endif %}
+
+            {% if shipment.status == 'custom_hold' %}
+            updates.push({ time: '1 hour ago', location: 'Customs Office', message: 'Custom clearance in progress', icon: 'file-alt' });
+            {% endif %}
+
+            {% if shipment.status == 'delivered' %}
+            updates.unshift({ time: '30 minutes ago', location: 'Final Destination', message: 'Successfully delivered to recipient', icon: 'check-circle' });
+            {% endif %}
+
+            const container = document.getElementById('updates-container');
+            if (container) {
+                container.innerHTML = '';
+
+                updates.forEach(update => {
+                    const updateEl = document.createElement('div');
+                    updateEl.className = 'flex items-start space-x-3 p-3 bg-gray-50 rounded-lg border';
+                    updateEl.innerHTML = `
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            <i class="fas fa-${update.icon} text-primary text-sm"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-start mb-1">
+                                <span class="font-semibold text-dark text-sm">${update.location}</span>
+                                <span class="text-dark/60 text-xs">${update.time}</span>
+                            </div>
+                            <p class="text-dark/60 text-xs">${update.message}</p>
+                        </div>
+                    `;
+                    container.appendChild(updateEl);
+                });
+            }
+        }
+
+        // Refresh tracking function
+        function refreshTracking() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Refreshing...</span>';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
+
+        // Image modal functions
+        function openImageModal(src) {
+            document.getElementById('modalImage').src = src;
+            document.getElementById('imageModal').classList.remove('hidden');
+            document.getElementById('imageModal').classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeImageModal() {
+            document.getElementById('imageModal').classList.add('hidden');
+            document.getElementById('imageModal').classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            updateProgress();
+            updateDaysInTransit();
+            loadUpdates();
+        });
+
+        // Update last update time
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const lastUpdateElement = document.getElementById('last-update');
+            if (lastUpdateElement) {
+                lastUpdateElement.textContent = `Updated: ${now.toLocaleTimeString()}`;
+            }
+        }
+
+        setInterval(updateLastUpdateTime, 30000);
+    </script>
+
+</body>
+</html>

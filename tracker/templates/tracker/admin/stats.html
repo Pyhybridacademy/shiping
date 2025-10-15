@@ -1,0 +1,275 @@
+{% extends 'tracker/admin/base.html' %}
+{% load tracker_extras %}
+
+{% block title %}Statistics - Admin Panel{% endblock %}
+{% block page_title %}Analytics & Statistics{% endblock %}
+{% block page_subtitle %}Comprehensive insights into your shipment tracking operations{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Overview Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="stat-card rounded-xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Total Shipments</p>
+                    <h3 class="text-3xl font-bold text-dark mt-2">{{ total_shipments }}</h3>
+                </div>
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-box text-primary text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card rounded-xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Today's Shipments</p>
+                    <h3 class="text-3xl font-bold text-dark mt-2">{{ today_shipments }}</h3>
+                </div>
+                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-calendar-day text-accent text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card rounded-xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Weekly Revenue</p>
+                    <h3 class="text-3xl font-bold text-dark mt-2">${{ weekly_revenue }}</h3>
+                </div>
+                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-dollar-sign text-purple-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card rounded-xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Monthly Shipments</p>
+                    <h3 class="text-3xl font-bold text-dark mt-2">{{ monthly_shipments }}</h3>
+                </div>
+                <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-chart-line text-orange-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Status Distribution -->
+        <div class="bg-white rounded-xl shadow-sm border p-6">
+            <h3 class="text-lg font-bold text-dark mb-4">Shipment Status Distribution</h3>
+            <div class="h-80">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Payment Distribution -->
+        <div class="bg-white rounded-xl shadow-sm border p-6">
+            <h3 class="text-lg font-bold text-dark mb-4">Payment Status Distribution</h3>
+            <div class="h-80">
+                <canvas id="paymentChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Statistics -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Status Breakdown -->
+        <div class="bg-white rounded-xl shadow-sm border p-6">
+            <h3 class="text-lg font-bold text-dark mb-4">Status Breakdown</h3>
+            <div class="space-y-3">
+                {% for stat in status_distribution %}
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">{{ stat.status|title }}</span>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-semibold">{{ stat.count }}</span>
+                        <span class="text-xs text-gray-500">
+                            ({{ stat.count|divisibleby:total_shipments|floatformat:1 }}%)
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Payment Breakdown -->
+        <div class="bg-white rounded-xl shadow-sm border p-6">
+            <h3 class="text-lg font-bold text-dark mb-4">Payment Breakdown</h3>
+            <div class="space-y-3">
+                {% for stat in payment_distribution %}
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">{{ stat.payment_status|title }}</span>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-semibold">{{ stat.count }}</span>
+                        <span class="text-xs text-gray-500">
+                            ({{ stat.count|divisibleby:total_shipments|floatformat:1 }}%)
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Revenue Summary -->
+        <div class="bg-white rounded-xl shadow-sm border p-6">
+            <h3 class="text-lg font-bold text-dark mb-4">Revenue Summary</h3>
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Total Revenue</span>
+                    <span class="font-bold text-green-600">${{ total_revenue }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Weekly Revenue</span>
+                    <span class="font-semibold">${{ weekly_revenue }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Monthly Revenue</span>
+                    <span class="font-semibold">${{ monthly_revenue }}</span>
+                </div>
+                <div class="pt-4 border-t">
+                    <div class="text-xs text-gray-500">
+                        Revenue calculated from paid shipments only
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="bg-white rounded-xl shadow-sm border p-6">
+        <h3 class="text-lg font-bold text-dark mb-4">Recent Activity</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-gray-200">
+                        <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600">Tracking #</th>
+                        <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600">Activity</th>
+                        <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600">Status</th>
+                        <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600">Payment</th>
+                        <th class="text-left py-3 px-4 text-sm font-semibold text-gray-600">Last Updated</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for shipment in recent_activity %}
+                    <tr class="border-b border-gray-100 hover:bg-gray-50">
+                        <td class="py-3 px-4">
+                            <div class="font-mono text-sm font-semibold">{{ shipment.tracking_number }}</div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <div class="text-sm">
+                                <div>{{ shipment.sender_name }} → {{ shipment.receiver_name }}</div>
+                                <div class="text-gray-500 text-xs">{{ shipment.origin }} to {{ shipment.destination }}</div>
+                            </div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ shipment.status|status_badge_class }}">
+                                {{ shipment.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ shipment.payment_status|payment_status_class }}">
+                                {{ shipment.get_payment_status_display }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-sm text-gray-600">
+                            {{ shipment.last_updated|date:"M d, Y H:i" }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="py-4 px-4 text-center text-gray-500">
+                            No recent activity
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Status Distribution Chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    const statusChart = new Chart(statusCtx, {
+        type: 'bar',
+        data: {
+            labels: [
+                {% for stat in status_distribution %}
+                '{{ stat.status|title }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Number of Shipments',
+                data: [
+                    {% for stat in status_distribution %}
+                    {{ stat.count }},
+                    {% endfor %}
+                ],
+                backgroundColor: [
+                    '#6b7280', '#3b82f6', '#f59e0b', '#eab308', '#ef4444', '#10b981'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+
+    // Payment Distribution Chart
+    const paymentCtx = document.getElementById('paymentChart').getContext('2d');
+    const paymentChart = new Chart(paymentCtx, {
+        type: 'pie',
+        data: {
+            labels: [
+                {% for stat in payment_distribution %}
+                '{{ stat.payment_status|title }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                data: [
+                    {% for stat in payment_distribution %}
+                    {{ stat.count }},
+                    {% endfor %}
+                ],
+                backgroundColor: [
+                    '#6b7280', '#eab308', '#10b981'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

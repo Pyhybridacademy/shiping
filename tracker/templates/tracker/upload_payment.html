@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Payment Proof</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen py-8 px-4">
+    
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-xl shadow-lg p-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">💳 Upload Payment Proof</h1>
+            <p class="text-gray-600 mb-6">Tracking: <span class="font-mono font-bold text-indigo-600">{{ shipment.tracking_number }}</span></p>
+            
+            <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-6 mb-6">
+                <h2 class="font-bold text-indigo-900 mb-3">Payment Details</h2>
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-gray-700">Shipment Cost:</span>
+                        <span class="font-bold text-gray-900">${{ shipment.shipment_cost }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-700">Clearance Cost:</span>
+                        <span class="font-bold text-gray-900">${{ shipment.clearance_cost }}</span>
+                    </div>
+                    <hr class="my-2">
+                    <div class="flex justify-between text-lg">
+                        <span class="font-bold text-gray-900">Total Amount:</span>
+                        <span class="font-bold text-indigo-600">${{ shipment.total_cost }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg mb-6">
+                <p class="text-sm text-gray-600 mb-2 font-semibold">Crypto Wallet Address:</p>
+                <div class="flex items-center gap-2">
+                    <input type="text" value="{{ shipment.crypto_wallet }}" readonly class="flex-1 font-mono text-sm bg-white p-3 rounded border" id="walletAddress">
+                    <button onclick="copyWallet()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded transition">
+                        Copy
+                    </button>
+                </div>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Upload Screenshot/Receipt</label>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-400 transition">
+                        <input type="file" name="proof" accept="image/*" required class="hidden" id="fileInput" onchange="previewImage(event)">
+                        <label for="fileInput" class="cursor-pointer">
+                            <svg class="w-16 h-16 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                            <p class="text-gray-600 font-semibold">Click to upload image</p>
+                            <p class="text-sm text-gray-500 mt-1">PNG, JPG up to 10MB</p>
+                        </label>
+                    </div>
+                    <img id="preview" class="hidden mt-4 max-w-full rounded-lg shadow-md mx-auto">
+                </div>
+
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-lg font-bold text-lg transition shadow-lg">
+                    Submit Payment Proof
+                </button>
+            </form>
+
+            <a href="/track/?tracking_number={{ shipment.tracking_number }}" class="block text-center text-indigo-600 hover:text-indigo-800 mt-4 font-semibold">
+                ← Back to Tracking
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function copyWallet() {
+            const input = document.getElementById('walletAddress');
+            input.select();
+            document.execCommand('copy');
+            alert('Wallet address copied!');
+        }
+
+        function previewImage(event) {
+            const preview = document.getElementById('preview');
+            const file = event.target.files[0];
+            if (file) {
+                preview.src = URL.createObjectURL(file);
+                preview.classList.remove('hidden');
+            }
+        }
+    </script>
+
+</body>
+</html>

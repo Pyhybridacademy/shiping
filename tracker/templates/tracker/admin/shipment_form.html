@@ -1,0 +1,258 @@
+{% extends 'tracker/admin/base.html' %}
+
+{% block title %}{% if shipment %}Edit{% else %}Create{% endif %} Shipment - Admin Panel{% endblock %}
+{% block page_title %}{% if shipment %}Edit Shipment{% else %}Create New Shipment{% endif %}{% endblock %}
+{% block page_subtitle %}{% if shipment %}Update shipment details for {{ shipment.tracking_number }}{% else %}Add a new shipment to the tracking system{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <form method="POST" enctype="multipart/form-data" class="space-y-6">
+        {% csrf_token %}
+        
+        <!-- Form Errors -->
+        {% if form.errors %}
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-circle text-red-600 mr-3"></i>
+                <div>
+                    <h4 class="text-red-800 font-semibold">Please correct the errors below:</h4>
+                    <ul class="text-red-700 text-sm mt-1 list-disc list-inside">
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ field.label }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Left Column -->
+            <div class="space-y-6">
+                <!-- Tracking Information -->
+                <div class="bg-white rounded-xl shadow-sm border p-6">
+                    <h3 class="text-lg font-bold text-dark mb-4 flex items-center">
+                        <i class="fas fa-barcode text-primary mr-2"></i>
+                        Tracking Information
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tracking Number *</label>
+                            {{ form.tracking_number }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Estimated Delivery</label>
+                            {{ form.estimated_delivery }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sender Information -->
+                <div class="bg-white rounded-xl shadow-sm border p-6">
+                    <h3 class="text-lg font-bold text-dark mb-4 flex items-center">
+                        <i class="fas fa-user-circle text-primary mr-2"></i>
+                        Sender Information
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Sender Name *</label>
+                            {{ form.sender_name }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Sender Address *</label>
+                            {{ form.sender_address }}
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Sender Email *</label>
+                                {{ form.sender_email }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Sender Phone *</label>
+                                {{ form.sender_phone }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Parcel Information -->
+                <div class="bg-white rounded-xl shadow-sm border p-6">
+                    <h3 class="text-lg font-bold text-dark mb-4 flex items-center">
+                        <i class="fas fa-box text-primary mr-2"></i>
+                        Parcel Information
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Parcel Description</label>
+                            {{ form.parcel_description }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Parcel Weight (kg)</label>
+                            {{ form.parcel_weight }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Parcel Image</label>
+                            {{ form.parcel_image }}
+                            {% if shipment.parcel_image %}
+                            <div class="mt-2">
+                                <img src="{{ shipment.parcel_image.url }}" alt="Parcel" class="w-32 h-32 object-cover rounded-lg border">
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="space-y-6">
+                <!-- Receiver Information -->
+                <div class="bg-white rounded-xl shadow-sm border p-6">
+                    <h3 class="text-lg font-bold text-dark mb-4 flex items-center">
+                        <i class="fas fa-user-check text-primary mr-2"></i>
+                        Receiver Information
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Receiver Name *</label>
+                            {{ form.receiver_name }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Receiver Address *</label>
+                            {{ form.receiver_address }}
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Receiver Email *</label>
+                                {{ form.receiver_email }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Receiver Phone *</label>
+                                {{ form.receiver_phone }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shipment Details -->
+                <div class="bg-white rounded-xl shadow-sm border p-6">
+                    <h3 class="text-lg font-bold text-dark mb-4 flex items-center">
+                        <i class="fas fa-route text-primary mr-2"></i>
+                        Shipment Details
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Origin *</label>
+                                {{ form.origin }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Destination *</label>
+                                {{ form.destination }}
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Current Location *</label>
+                            {{ form.current_location }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Status *</label>
+                            {{ form.status }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Remarks</label>
+                            {{ form.remarks }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Information -->
+                <div class="bg-white rounded-xl shadow-sm border p-6">
+                    <h3 class="text-lg font-bold text-dark mb-4 flex items-center">
+                        <i class="fas fa-credit-card text-primary mr-2"></i>
+                        Payment Information
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Require Payment</label>
+                                {{ form.require_payment }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Show Payment Info</label>
+                                {{ form.show_payment_info }}
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
+                            {{ form.payment_method }}
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Shipment Cost ($)</label>
+                                {{ form.shipment_cost }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Clearance Cost ($)</label>
+                                {{ form.clearance_cost }}
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Crypto Wallet Address</label>
+                            {{ form.crypto_wallet }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Payment Status</label>
+                            {{ form.payment_status }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex justify-end space-x-4 pt-6 border-t">
+            <a href="{% url 'admin_shipments' %}" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                Cancel
+            </a>
+            <button type="submit" class="bg-accent hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors">
+                {% if shipment %}Update Shipment{% else %}Create Shipment{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    /* Form styling */
+    input, select, textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+    
+    input:focus, select:focus, textarea:focus {
+        outline: none;
+        ring: 2px;
+        ring-color: #2563eb;
+        border-color: #2563eb;
+    }
+    
+    textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+    
+    /* Checkbox styling */
+    input[type="checkbox"] {
+        width: auto;
+        transform: scale(1.2);
+    }
+</style>
+{% endblock %}

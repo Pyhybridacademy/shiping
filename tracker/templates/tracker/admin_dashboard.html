@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen py-6 px-4">
+    
+    <div class="max-w-7xl mx-auto">
+        
+        <!-- Header -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">👨‍💼 Admin Dashboard</h1>
+                    <p class="text-gray-600">Manage shipments and verify payments</p>
+                </div>
+                <a href="/" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition">
+                    Back to Home
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid md:grid-cols-3 gap-6 mb-6">
+            <div class="bg-white rounded-xl shadow p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Total Shipments</p>
+                        <p class="text-3xl font-bold text-gray-800">{{ shipments.count }}</p>
+                    </div>
+                    <div class="bg-blue-100 p-4 rounded-lg">
+                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Pending Payments</p>
+                        <p class="text-3xl font-bold text-yellow-600">{{ pending_proofs.count }}</p>
+                    </div>
+                    <div class="bg-yellow-100 p-4 rounded-lg">
+                        <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Delivered</p>
+                        <p class="text-3xl font-bold text-green-600">{{ shipments|length }}</p>
+                    </div>
+                    <div class="bg-green-100 p-4 rounded-lg">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Payment Proofs -->
+        {% if pending_proofs %}
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">⏳ Pending Payment Verifications</h2>
+            <div class="space-y-4">
+                {% for proof in pending_proofs %}
+                <div class="border border-yellow-200 bg-yellow-50 rounded-lg p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <img src="{{ proof.image.url }}" alt="Payment Proof" class="w-20 h-20 object-cover rounded-lg shadow">
+                        <div>
+                            <p class="font-bold text-gray-800">{{ proof.shipment.tracking_number }}</p>
+                            <p class="text-sm text-gray-600">Receiver: {{ proof.shipment.receiver_name }}</p>
+                            <p class="text-sm text-gray-600">Amount: ${{ proof.shipment.total_cost }}</p>
+                            <p class="text-xs text-gray-500">Uploaded: {{ proof.date_uploaded|date:"Y-m-d H:i" }}</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <a href="{{ proof.image.url }}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition">
+                            View Full
+                        </a>
+                        <a href="/verify-payment/{{ proof.id }}/" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition">
+                            ✓ Verify
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- All Shipments -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-gray-800">📦 All Shipments</h2>
+                <a href="/admin/tracker/shipment/add/" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition">
+                    + Add Shipment
+                </a>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Tracking #</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Receiver</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Payment</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for shipment in shipments %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 font-mono text-sm text-indigo-600">{{ shipment.tracking_number }}</td>
+                            <td class="px-4 py-3 text-sm text-gray-800">{{ shipment.receiver_name }}</td>
+                            <td class="px-4 py-3">
+                                <span class="px-3 py-1 text-xs font-semibold rounded-full
+                                    {% if shipment.status == 'delivered' %}bg-green-100 text-green-700
+                                    {% elif shipment.status == 'on_way' %}bg-blue-100 text-blue-700
+                                    {% elif shipment.status == 'on_hold' %}bg-red-100 text-red-700
+                                    {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                    {{ shipment.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">
+                                {% if shipment.require_payment %}
+                                    <span class="px-3 py-1 text-xs font-semibold rounded-full
+                                        {% if shipment.payment_status == 'paid' %}bg-green-100 text-green-700
+                                        {% elif shipment.payment_status == 'awaiting_payment' %}bg-yellow-100 text-yellow-700
+                                        {% else %}bg-red-100 text-red-700{% endif %}">
+                                        {{ shipment.get_payment_status_display }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-gray-400 text-xs">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="flex gap-2">
+                                    <a href="/track/?tracking_number={{ shipment.tracking_number }}" class="text-blue-600 hover:text-blue-800 text-sm">View</a>
+                                    <a href="/admin/tracker/shipment/{{ shipment.id }}/change/" class="text-indigo-600 hover:text-indigo-800 text-sm">Edit</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-4 py-8 text-center text-gray-500">No shipments yet</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

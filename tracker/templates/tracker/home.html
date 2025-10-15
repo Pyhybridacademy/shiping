@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_settings.site_name }} - Premium Shipment Tracking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        secondary: '#1e40af',
+                        accent: '#059669',
+                        dark: '#1f2937',
+                        light: '#f8fafc',
+                        card: '#ffffff'
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s ease-in-out infinite',
+                        'fadeIn': 'fadeIn 1s ease-in-out',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .hero-gradient {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 50%, #1e3a8a 100%);
+        }
+        .feature-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border-color: #2563eb;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .tracking-input {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .floating-element {
+            animation: float 6s ease-in-out infinite;
+        }
+        .floating-element:nth-child(2) {
+            animation-delay: 2s;
+        }
+        .floating-element:nth-child(3) {
+            animation-delay: 4s;
+        }
+        .testimonial-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid #e2e8f0;
+        }
+        .team-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        .team-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+        }
+        .service-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+        .animate-on-scroll.animated {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="font-inter bg-light min-h-screen">
+    
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b sticky top-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-shipping-fast text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <span class="text-xl font-bold text-dark">{{ site_settings.site_name }}</span>
+                    </div>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#home" class="text-dark hover:text-primary font-medium transition-colors">Home</a>
+                    <a href="#services" class="text-dark hover:text-primary font-medium transition-colors">Services</a>
+                    <a href="#how-it-works" class="text-dark hover:text-primary font-medium transition-colors">How It Works</a>
+                    <a href="#testimonials" class="text-dark hover:text-primary font-medium transition-colors">Testimonials</a>
+                    <a href="#team" class="text-dark hover:text-primary font-medium transition-colors">Our Team</a>
+                </div>
+                
+                <!-- Mobile Menu Button -->
+                <button id="mobileMenuButton" class="md:hidden text-dark">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- Mobile Navigation -->
+            <div id="mobileMenu" class="hidden md:hidden mt-4 pb-4 border-t pt-4">
+                <div class="flex flex-col space-y-4">
+                    <a href="#home" class="text-dark hover:text-primary font-medium transition-colors">Home</a>
+                    <a href="#services" class="text-dark hover:text-primary font-medium transition-colors">Services</a>
+                    <a href="#how-it-works" class="text-dark hover:text-primary font-medium transition-colors">How It Works</a>
+                    <a href="#testimonials" class="text-dark hover:text-primary font-medium transition-colors">Testimonials</a>
+                    <a href="#team" class="text-dark hover:text-primary font-medium transition-colors">Our Team</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero-gradient relative overflow-hidden">
+        <!-- Background Elements -->
+        <div class="absolute inset-0">
+            <div class="floating-element absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full"></div>
+            <div class="floating-element absolute top-1/4 right-20 w-16 h-16 bg-accent/20 rounded-full"></div>
+            <div class="floating-element absolute bottom-20 left-1/4 w-24 h-24 bg-white/5 rounded-full"></div>
+        </div>
+
+        <div class="container mx-auto px-4 sm:px-6 py-16 md:py-24 relative z-10">
+            <div class="max-w-4xl mx-auto text-center">
+                <!-- Main Heading -->
+                <h1 class="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight animate-on-scroll">
+                    Track Your Shipments
+                    <span class="block text-accent">With Confidence</span>
+                </h1>
+                
+                <!-- Subtitle -->
+                <p class="text-xl text-blue-100 mb-8 max-w-2xl mx-auto leading-relaxed animate-on-scroll">
+                    Real-time tracking, secure payments, and professional logistics management all in one powerful platform.
+                </p>
+
+                <!-- Tracking Form -->
+                <div class="max-w-2xl mx-auto mb-12 animate-on-scroll" id="tracking-form">
+                    <div class="tracking-input rounded-2xl p-2 shadow-2xl">
+                        <form action="/track/" method="GET" class="flex flex-col sm:flex-row gap-2">
+                            <div class="flex-1">
+                                <input 
+                                    type="text" 
+                                    name="tracking_number" 
+                                    placeholder="Enter your tracking number (e.g., GTRK202400001XYZ)"
+                                    required
+                                    class="w-full px-4 sm:px-6 py-4 text-lg bg-transparent border-0 rounded-xl focus:outline-none focus:ring-0"
+                                >
+                            </div>
+                            <button 
+                                type="submit"
+                                class="bg-accent hover:bg-green-700 text-white px-6 sm:px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2"
+                            >
+                                <i class="fas fa-search"></i>
+                                <span>Track Shipment</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-12">
+                    <div class="stat-card rounded-2xl p-4 md:p-6 text-center animate-on-scroll">
+                        <div class="text-2xl font-bold text-white mb-2" id="stats-shipments">10,000+</div>
+                        <div class="text-blue-200 text-sm">Shipments Tracked</div>
+                    </div>
+                    <div class="stat-card rounded-2xl p-4 md:p-6 text-center animate-on-scroll">
+                        <div class="text-2xl font-bold text-white mb-2" id="stats-countries">150+</div>
+                        <div class="text-blue-200 text-sm">Countries Served</div>
+                    </div>
+                    <div class="stat-card rounded-2xl p-4 md:p-6 text-center animate-on-scroll">
+                        <div class="text-2xl font-bold text-white mb-2" id="stats-success">99.8%</div>
+                        <div class="text-blue-200 text-sm">Success Rate</div>
+                    </div>
+                    <div class="stat-card rounded-2xl p-4 md:p-6 text-center animate-on-scroll">
+                        <div class="text-2xl font-bold text-white mb-2" id="stats-support">24/7</div>
+                        <div class="text-blue-200 text-sm">Customer Support</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="bg-white py-16 md:py-24">
+        <div class="container mx-auto px-4 sm:px-6">
+            <div class="text-center mb-12 md:mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-dark mb-4 animate-on-scroll">Our Comprehensive Services</h2>
+                <p class="text-gray-600 text-lg max-w-2xl mx-auto animate-on-scroll">
+                    From global freight to last-mile delivery, we provide end-to-end logistics solutions for businesses of all sizes.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+                <!-- Service 1 -->
+                <div class="feature-card rounded-2xl p-6 text-center animate-on-scroll">
+                    <div class="service-icon">
+                        <i class="fas fa-plane text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-dark mb-4">Global Freight</h3>
+                    <p class="text-gray-600 mb-4">
+                        Air, sea, and land freight solutions connecting businesses across 150+ countries worldwide.
+                    </p>
+                    <div class="bg-blue-50 rounded-lg p-4 mt-4">
+                        <img src="https://nairaxi.ng/wp-content/uploads/2024/06/freight-services-in-Lagos-abuja-and-Nigeria-nairaxi-transport-and-logistics-limited.jpg" alt="Global Freight" class="w-full h-40 object-cover rounded-lg">
+                    </div>
+                </div>
+
+                <!-- Service 2 -->
+                <div class="feature-card rounded-2xl p-6 text-center animate-on-scroll">
+                    <div class="service-icon">
+                        <i class="fas fa-truck text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-dark mb-4">Haulage & Transport</h3>
+                    <p class="text-gray-600 mb-4">
+                        Reliable trucking and transport services with real-time tracking and professional drivers.
+                    </p>
+                    <div class="bg-green-50 rounded-lg p-4 mt-4">
+                        <img src="https://mlszn6rjkywy.i.optimole.com/w:1024/h:683/q:mauto/f:best/https://nairaxi.ng/wp-content/uploads/2024/06/Nairaxi-Fast-Haulage-and-Cargo-Transportation-services-in-Lagos-Abuja-Kano-Port-Harcourt-and-All-Major-cities-in-Nigeria.jpeg" alt="Haulage Services" class="w-full h-40 object-cover rounded-lg">
+                    </div>
+                </div>
+
+                <!-- Service 3 -->
+                <div class="feature-card rounded-2xl p-6 text-center animate-on-scroll">
+                    <div class="service-icon">
+                        <i class="fas fa-motorcycle text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-dark mb-4">Express Courier</h3>
+                    <p class="text-gray-600 mb-4">
+                        Fast and reliable courier services for time-sensitive deliveries within urban areas.
+                    </p>
+                    <div class="bg-purple-50 rounded-lg p-4 mt-4">
+                        <img src="https://media.istockphoto.com/id/1242710647/photo/delivery-man-riding-a-motorcycle-motoboy.jpg?s=612x612&w=0&k=20&c=BEIYzBaDR-z0eYIUX17jYWtuanalXD9XwFGIomCqPcM=" alt="Express Courier" class="w-full h-40 object-cover rounded-lg">
+                    </div>
+                </div>
+
+                <!-- Service 4 -->
+                <div class="feature-card rounded-2xl p-6 text-center animate-on-scroll">
+                    <div class="service-icon">
+                        <i class="fas fa-home text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-dark mb-4">Doorstep Delivery</h3>
+                    <p class="text-gray-600 mb-4">
+                        Professional doorstep delivery with signature confirmation and personalized service.
+                    </p>
+                    <div class="bg-orange-50 rounded-lg p-4 mt-4">
+                        <img src="https://img.freepik.com/free-photo/delivery-person-getting-parcel-out-delivery_23-2149371921.jpg" alt="Doorstep Delivery" class="w-full h-40 object-cover rounded-lg">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="bg-gray-50 py-16 md:py-24">
+        <div class="container mx-auto px-4 sm:px-6">
+            <div class="text-center mb-12 md:mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-dark mb-4 animate-on-scroll">Why Choose {{ site_settings.site_name }}?</h2>
+                <p class="text-gray-600 text-lg max-w-2xl mx-auto animate-on-scroll">
+                    Experience the future of shipment tracking with our advanced features and professional service.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6 md:gap-8">
+                <!-- Feature 1 -->
+                <div class="feature-card rounded-2xl p-6 md:p-8 text-center animate-on-scroll">
+                    <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-satellite text-primary text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-dark mb-4">Real-time Tracking</h3>
+                    <p class="text-gray-600 mb-4">
+                        Get minute-by-minute updates with our advanced GPS tracking system. Know exactly where your shipment is at all times.
+                    </p>
+                    <ul class="text-sm text-gray-500 space-y-2 text-left">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-accent mr-2"></i>
+                            Live location updates
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-accent mr-2"></i>
+                            Estimated delivery times
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-accent mr-2"></i>
+                            Route optimization
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="feature-card rounded-2xl p-6 md:p-8 text-center animate-on-scroll">
+                    <div class="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-shield-alt text-accent text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-dark mb-4">Secure Payments</h3>
+                    <p class="text-gray-600 mb-4">
+                        Blockchain-powered secure payments with Bitcoin and USDT. Fast, reliable, and completely secure transactions.
+                    </p>
+                    <ul class="text-sm text-gray-500 space-y-2 text-left">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-accent mr-2"></i>
+                            Bitcoin & USDT payments
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-accent mr-2"></i>
+                            Secure wallet integration
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-accent mr-2"></i>
+                            Instant verification
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="feature-card rounded-2xl p-6 md:p-8 text-center animate-on-scroll">
+                    <div class="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-file-pdf text-purple-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-dark mb-4">Professional Reports</h3>
+                    <p class="text-gray-600 mb-4">
+                        Generate professional PDF reports with official stamps and signatures. Perfect for business documentation.
+                    </p>
+                    <ul class="text-sm text-gray-500 space-y-2 text-left">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-accent mr-2"></i>
+                            Custom PDF generation
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-accent mr-2"></i>
+                            Official stamps & signatures
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-accent mr-2"></i>
+                            Branded documentation
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="bg-white py-16 md:py-24">
+        <div class="container mx-auto px-4 sm:px-6">
+            <div class="text-center mb-12 md:mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-dark mb-4 animate-on-scroll">How It Works</h2>
+                <p class="text-gray-600 text-lg animate-on-scroll">Simple, fast, and reliable shipment tracking in three easy steps</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+                <!-- Step 1 -->
+                <div class="text-center animate-on-scroll">
+                    <div class="w-20 h-20 bg-primary rounded-full flex items-center justify-center mx-auto mb-6 relative">
+                        <span class="text-white text-2xl font-bold">1</span>
+                        <div class="absolute -right-8 top-1/2 w-16 h-1 bg-primary hidden md:block"></div>
+                    </div>
+                    <h3 class="text-xl font-bold text-dark mb-3">Enter Tracking Number</h3>
+                    <p class="text-gray-600">
+                        Simply enter your unique tracking number in the search box above to get started.
+                    </p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="text-center animate-on-scroll">
+                    <div class="w-20 h-20 bg-secondary rounded-full flex items-center justify-center mx-auto mb-6 relative">
+                        <span class="text-white text-2xl font-bold">2</span>
+                        <div class="absolute -right-8 top-1/2 w-16 h-1 bg-secondary hidden md:block"></div>
+                    </div>
+                    <h3 class="text-xl font-bold text-dark mb-3">View Real-time Status</h3>
+                    <p class="text-gray-600">
+                        Get instant access to detailed tracking information, current location, and estimated delivery.
+                    </p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="text-center animate-on-scroll">
+                    <div class="w-20 h-20 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span class="text-white text-2xl font-bold">3</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-dark mb-3">Manage & Download</h3>
+                    <p class="text-gray-600">
+                        Upload payment proofs, download professional reports, and manage your shipments effortlessly.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="bg-gray-50 py-16 md:py-24">
+        <div class="container mx-auto px-4 sm:px-6">
+            <div class="text-center mb-12 md:mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-dark mb-4 animate-on-scroll">What Our Clients Say</h2>
+                <p class="text-gray-600 text-lg max-w-2xl mx-auto animate-on-scroll">
+                    Don't just take our word for it. Here's what businesses worldwide have to say about our services.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                <!-- Testimonial 1 -->
+                <div class="testimonial-card rounded-2xl p-6 animate-on-scroll">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white font-bold mr-4">
+                            JD
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-dark">John Davidson</h4>
+                            <p class="text-gray-500 text-sm">CEO, TechGlobal Inc.</p>
+                        </div>
+                    </div>
+                    <div class="text-yellow-400 mb-3">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-600 italic">
+                        "{{ site_settings.site_name }} has revolutionized our logistics operations. The real-time tracking and professional reports have saved us countless hours and improved our customer satisfaction significantly."
+                    </p>
+                </div>
+
+                <!-- Testimonial 2 -->
+                <div class="testimonial-card rounded-2xl p-6 animate-on-scroll">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-accent rounded-full flex items-center justify-center text-white font-bold mr-4">
+                            SM
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-dark">Sarah Martinez</h4>
+                            <p class="text-gray-500 text-sm">Operations Manager, EuroGoods</p>
+                        </div>
+                    </div>
+                    <div class="text-yellow-400 mb-3">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-600 italic">
+                        "The secure payment system with Bitcoin integration has made international transactions so much easier. Our European clients appreciate the modern approach to logistics."
+                    </p>
+                </div>
+
+                <!-- Testimonial 3 -->
+                <div class="testimonial-card rounded-2xl p-6 animate-on-scroll">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-secondary rounded-full flex items-center justify-center text-white font-bold mr-4">
+                            RK
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-dark">Robert Kim</h4>
+                            <p class="text-gray-500 text-sm">Logistics Director, AsiaTrade Co.</p>
+                        </div>
+                    </div>
+                    <div class="text-yellow-400 mb-3">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-600 italic">
+                        "The doorstep delivery service has been a game-changer for our e-commerce business. Our customers love the professional service and real-time updates."
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section id="team" class="bg-white py-16 md:py-24">
+        <div class="container mx-auto px-4 sm:px-6">
+            <div class="text-center mb-12 md:mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-dark mb-4 animate-on-scroll">Meet Our Leadership Team</h2>
+                <p class="text-gray-600 text-lg max-w-2xl mx-auto animate-on-scroll">
+                    Our experienced team is dedicated to providing world-class logistics solutions for your business.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+                <!-- Team Member 1 -->
+                <div class="team-card rounded-2xl p-6 text-center animate-on-scroll">
+                    <div class="w-24 h-24 bg-gradient-to-r from-primary to-secondary rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold">
+                        MJ
+                    </div>
+                    <h3 class="text-xl font-bold text-dark mb-2">Michael Johnson</h3>
+                    <p class="text-accent font-medium mb-3">Chief Executive Officer</p>
+                    <p class="text-gray-600 text-sm">
+                        With over 15 years in the logistics industry, Michael leads our vision for global expansion and innovation.
+                    </p>
+                    <div class="flex justify-center space-x-3 mt-4">
+                        <a href="#" class="text-gray-400 hover:text-primary transition-colors">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-primary transition-colors">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Team Member 2 -->
+                <div class="team-card rounded-2xl p-6 text-center animate-on-scroll">
+                    <div class="w-24 h-24 bg-gradient-to-r from-accent to-green-700 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold">
+                        EW
+                    </div>
+                    <h3 class="text-xl font-bold text-dark mb-2">Emma Wilson</h3>
+                    <p class="text-accent font-medium mb-3">Chief Operations Officer</p>
+                    <p class="text-gray-600 text-sm">
+                        Emma oversees our global operations, ensuring seamless delivery experiences across all service lines.
+                    </p>
+                    <div class="flex justify-center space-x-3 mt-4">
+                        <a href="#" class="text-gray-400 hover:text-primary transition-colors">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-primary transition-colors">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Team Member 3 -->
+                <div class="team-card rounded-2xl p-6 text-center animate-on-scroll">
+                    <div class="w-24 h-24 bg-gradient-to-r from-secondary to-primary rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold">
+                        DR
+                    </div>
+                    <h3 class="text-xl font-bold text-dark mb-2">David Rodriguez</h3>
+                    <p class="text-accent font-medium mb-3">Technology Director</p>
+                    <p class="text-gray-600 text-sm">
+                        David leads our tech innovation, developing the cutting-edge tracking and payment systems that power our platform.
+                    </p>
+                    <div class="flex justify-center space-x-3 mt-4">
+                        <a href="#" class="text-gray-400 hover:text-primary transition-colors">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-primary transition-colors">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Team Member 4 -->
+                <div class="team-card rounded-2xl p-6 text-center animate-on-scroll">
+                    <div class="w-24 h-24 bg-gradient-to-r from-purple-500 to-purple-700 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold">
+                        LT
+                    </div>
+                    <h3 class="text-xl font-bold text-dark mb-2">Lisa Thompson</h3>
+                    <p class="text-accent font-medium mb-3">Customer Success Director</p>
+                    <p class="text-gray-600 text-sm">
+                        Lisa ensures our clients receive exceptional support and that our services continually exceed expectations.
+                    </p>
+                    <div class="flex justify-center space-x-3 mt-4">
+                        <a href="#" class="text-gray-400 hover:text-primary transition-colors">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-primary transition-colors">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="bg-primary py-16 md:py-20">
+        <div class="container mx-auto px-4 sm:px-6 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-4 animate-on-scroll">
+                Ready to Transform Your Logistics?
+            </h2>
+            <p class="text-blue-100 text-lg mb-8 max-w-2xl mx-auto animate-on-scroll">
+                Join thousands of satisfied customers who trust {{ site_settings.site_name }} for their shipment tracking needs.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center animate-on-scroll">
+                <a href="#tracking-form" class="bg-accent hover:bg-green-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105">
+                    <i class="fas fa-search mr-2"></i>Track Now
+                </a>
+                
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-12">
+        <div class="container mx-auto px-4 sm:px-6">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <div class="w-8 h-8 bg-primary rounded flex items-center justify-center">
+                            <i class="fas fa-shipping-fast text-white"></i>
+                        </div>
+                        <span class="text-xl font-bold">GlobalTrack<span class="text-accent">Pro</span></span>
+                    </div>
+                    <p class="text-gray-400 text-sm">
+                        Professional shipment tracking and logistics management platform for businesses worldwide.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Quick Links</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#home" class="hover:text-white transition-colors">Home</a></li>
+                        <li><a href="#services" class="hover:text-white transition-colors">Services</a></li>
+                        <li><a href="#how-it-works" class="hover:text-white transition-colors">How It Works</a></li>
+                        <li><a href="#testimonials" class="hover:text-white transition-colors">Testimonials</a></li>
+                        <li><a href="#team" class="hover:text-white transition-colors">Our Team</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Features</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-accent mr-2 text-xs"></i>
+                            Real-time Tracking
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-accent mr-2 text-xs"></i>
+                            Secure Payments
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-accent mr-2 text-xs"></i>
+                            PDF Reports
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-accent mr-2 text-xs"></i>
+                            Global Coverage
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold text-lg mb-4">Support</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li class="flex items-center">
+                            <i class="fas fa-phone text-accent mr-2"></i>
+                            {{ site_settings.contact_phone }}
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-envelope text-accent mr-2"></i>
+                            {{ site_settings.contact_email }}
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-clock text-accent mr-2"></i>
+                            24/7 Customer Support
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-map-marker-alt text-accent mr-2"></i>
+                            {{ site_settings.company_address }}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 {{ site_settings.site_name }}. All rights reserved. Professional shipment tracking solutions.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobileMenuButton').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Animated counter for stats
+        function animateCounter(element, target, duration = 2000) {
+            let start = 0;
+            const increment = target / (duration / 16);
+            const timer = setInterval(() => {
+                start += increment;
+                if (start >= target) {
+                    element.textContent = target === 99.8 ? '99.8%' : target.toLocaleString() + '+';
+                    clearInterval(timer);
+                } else {
+                    element.textContent = target === 99.8 ? 
+                        Math.min(start, 99.8).toFixed(1) + '%' : 
+                        Math.floor(start).toLocaleString();
+                }
+            }, 16);
+        }
+
+        // Scroll animation
+        function checkScroll() {
+            const elements = document.querySelectorAll('.animate-on-scroll');
+            elements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                const windowHeight = window.innerHeight;
+                
+                if (elementTop < windowHeight - 100) {
+                    element.classList.add('animated');
+                }
+            });
+        }
+
+        // Initialize on load
+        window.addEventListener('load', function() {
+            checkScroll();
+            
+            // Animate stats when they come into view
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animateCounter(document.getElementById('stats-shipments'), 10000);
+                        animateCounter(document.getElementById('stats-countries'), 150);
+                        animateCounter(document.getElementById('stats-success'), 99.8);
+                        animateCounter(document.getElementById('stats-support'), 24);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            const statsSection = document.querySelector('.hero-gradient');
+            if (statsSection) {
+                observer.observe(statsSection);
+            }
+        });
+
+        // Check scroll position on scroll
+        window.addEventListener('scroll', checkScroll);
+
+        // Smooth scroll for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                    
+                    // Close mobile menu if open
+                    const mobileMenu = document.getElementById('mobileMenu');
+                    mobileMenu.classList.add('hidden');
+                }
+            });
+        });
+
+        // Add focus effect to tracking input
+        const trackingInput = document.querySelector('input[name="tracking_number"]');
+        if (trackingInput) {
+            trackingInput.addEventListener('focus', function() {
+                this.parentElement.parentElement.style.transform = 'scale(1.02)';
+                this.parentElement.parentElement.style.transition = 'transform 0.3s ease';
+            });
+
+            trackingInput.addEventListener('blur', function() {
+                this.parentElement.parentElement.style.transform = 'scale(1)';
+            });
+        }
+    </script>
+
+</body>
+</html>

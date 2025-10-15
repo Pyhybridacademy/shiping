@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Dashboard - {{ site_settings.site_name }}{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        secondary: '#1e40af',
+                        accent: '#059669',
+                        danger: '#dc2626',
+                        warning: '#d97706',
+                        dark: '#1f2937',
+                        light: '#f8fafc',
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+        .sidebar.collapsed {
+            width: 64px;
+        }
+        .sidebar.collapsed .sidebar-text {
+            display: none;
+        }
+        .main-content {
+            transition: all 0.3s ease;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid #e2e8f0;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Mobile-specific styles */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0 !important;
+            }
+            .mobile-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 40;
+            }
+            .mobile-overlay.active {
+                display: block;
+            }
+            .mobile-header {
+                position: sticky;
+                top: 0;
+                z-index: 30;
+                background: white;
+            }
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .mobile-menu-btn {
+                display: block;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .mobile-menu-btn {
+                display: none;
+            }
+            .mobile-overlay {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="font-inter bg-gray-50 min-h-screen">
+    <!-- Mobile Overlay -->
+    <div id="mobileOverlay" class="mobile-overlay"></div>
+
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar fixed inset-y-0 left-0 z-50 w-64 bg-dark text-white">
+        <div class="flex flex-col h-full">
+            <!-- Logo -->
+            <div class="flex items-center justify-between p-4 border-b border-gray-700">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-primary rounded flex items-center justify-center">
+                        <i class="fas fa-shipping-fast text-white"></i>
+                    </div>
+                    <span class="sidebar-text font-bold text-lg">{{ site_settings.site_name }}<span class="text-accent"></span></span>
+                </div>
+                <button id="sidebarToggle" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="{% url 'admin_dashboard' %}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors {% if request.resolver_match.url_name == 'admin_dashboard' %}bg-primary{% endif %}">
+                    <i class="fas fa-tachometer-alt w-5"></i>
+                    <span class="sidebar-text">Dashboard</span>
+                </a>
+                
+                <a href="{% url 'admin_shipments' %}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors {% if 'shipments' in request.resolver_match.url_name %}bg-primary{% endif %}">
+                    <i class="fas fa-box w-5"></i>
+                    <span class="sidebar-text">Shipments</span>
+                </a>
+                
+                <a href="{% url 'admin_payments' %}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors {% if 'payments' in request.resolver_match.url_name %}bg-primary{% endif %}">
+                    <i class="fas fa-credit-card w-5"></i>
+                    <span class="sidebar-text">Payments</span>
+                    {% if pending_payments_count > 0 %}
+                    <span class="sidebar-text bg-red-500 text-white text-xs px-2 py-1 rounded-full">{{ pending_payments_count }}</span>
+                    {% endif %}
+                </a>
+                
+                <a href="{% url 'admin_stats' %}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors {% if request.resolver_match.url_name == 'admin_stats' %}bg-primary{% endif %}">
+                    <i class="fas fa-chart-bar w-5"></i>
+                    <span class="sidebar-text">Statistics</span>
+                </a>
+                
+                <a href="{% url 'admin_settings' %}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 transition-colors {% if request.resolver_match.url_name == 'admin_settings' %}bg-primary{% endif %}">
+                    <i class="fas fa-cog w-5"></i>
+                    <span class="sidebar-text">Settings</span>
+                </a>
+            </nav>
+
+            <!-- User Section -->
+            <div class="p-4 border-t border-gray-700">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-white text-sm"></i>
+                    </div>
+                    <div class="sidebar-text">
+                        <div class="text-sm font-medium">{{ request.user.username }}</div>
+                        <div class="text-xs text-gray-400">Administrator</div>
+                    </div>
+                </div>
+                <div class="sidebar-text mt-3 space-y-1">
+                    <a href="/" class="flex items-center space-x-2 text-sm text-gray-400 hover:text-white transition-colors">
+                        <i class="fas fa-external-link-alt text-xs"></i>
+                        <span>View Site</span>
+                    </a>
+                    <a href="{% url 'admin:logout' %}" class="flex items-center space-x-2 text-sm text-gray-400 hover:text-white transition-colors">
+                        <i class="fas fa-sign-out-alt text-xs"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" class="main-content ml-64 transition-all duration-300">
+        <!-- Top Bar -->
+        <header class="mobile-header bg-white shadow-sm border-b">
+            <div class="flex justify-between items-center px-4 py-4 md:px-6">
+                <div class="flex items-center">
+                    <button id="mobileMenuToggle" class="mobile-menu-btn mr-3 text-gray-600">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <div>
+                        <h1 class="text-xl md:text-2xl font-bold text-dark">{% block page_title %}Admin Dashboard{% endblock %}</h1>
+                        <p class="text-gray-600 text-sm">{% block page_subtitle %}Manage your shipment tracking system{% endblock %}</p>
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center space-x-4">
+                    <div class="text-sm text-gray-600">
+                        <i class="fas fa-clock mr-2"></i>
+                        <span id="currentTime">{{ current_time|default:"" }}</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Messages -->
+        {% if messages %}
+        <div class="px-4 md:px-6 py-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} p-4 rounded-lg mb-2 {% if message.tags == 'success' %}bg-green-100 text-green-800 border border-green-200{% elif message.tags == 'error' %}bg-red-100 text-red-800 border border-red-200{% else %}bg-blue-100 text-blue-800 border border-blue-200{% endif %}">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        {% if message.tags == 'success' %}
+                        <i class="fas fa-check-circle mr-3"></i>
+                        {% elif message.tags == 'error' %}
+                        <i class="fas fa-exclamation-circle mr-3"></i>
+                        {% else %}
+                        <i class="fas fa-info-circle mr-3"></i>
+                        {% endif %}
+                        {{ message }}
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Page Content -->
+        <main class="p-4 md:p-6">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script>
+        // Sidebar toggle for desktop
+        document.getElementById('sidebarToggle').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            
+            // Only toggle on desktop
+            if (window.innerWidth >= 769) {
+                sidebar.classList.toggle('collapsed');
+                if (sidebar.classList.contains('collapsed')) {
+                    mainContent.classList.remove('ml-64');
+                    mainContent.classList.add('ml-16');
+                } else {
+                    mainContent.classList.remove('ml-16');
+                    mainContent.classList.add('ml-64');
+                }
+            }
+        });
+
+        // Mobile menu toggle
+        document.getElementById('mobileMenuToggle').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobileOverlay');
+            
+            sidebar.classList.toggle('mobile-open');
+            overlay.classList.toggle('active');
+        });
+
+        // Close mobile menu when clicking overlay
+        document.getElementById('mobileOverlay').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobileOverlay');
+            
+            sidebar.classList.remove('mobile-open');
+            overlay.classList.remove('active');
+        });
+
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const timeElement = document.getElementById('currentTime');
+            if (timeElement) {
+                timeElement.textContent = timeString;
+            }
+        }
+
+        // Update time immediately and every second
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.transition = 'opacity 0.5s ease';
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 5000);
+    </script>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

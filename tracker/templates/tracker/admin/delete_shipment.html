@@ -1,0 +1,67 @@
+{% extends 'tracker/admin/base.html' %}
+
+{% block title %}Delete Shipment - Admin Panel{% endblock %}
+{% block page_title %}Delete Shipment{% endblock %}
+{% block page_subtitle %}Are you sure you want to delete this shipment?{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-xl shadow-sm border p-6">
+        <!-- Warning -->
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-triangle text-red-600 text-xl mr-3"></i>
+                <div>
+                    <h4 class="text-red-800 font-semibold">Warning: This action cannot be undone!</h4>
+                    <p class="text-red-700 text-sm mt-1">Deleting this shipment will remove all associated data including payment proofs.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shipment Details -->
+        <div class="border border-gray-200 rounded-lg p-4 mb-6">
+            <h3 class="font-semibold text-dark mb-4">Shipment Details</h3>
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                    <span class="text-gray-600">Tracking Number:</span>
+                    <div class="font-mono font-semibold">{{ shipment.tracking_number }}</div>
+                </div>
+                <div>
+                    <span class="text-gray-600">Status:</span>
+                    <div>{{ shipment.get_status_display }}</div>
+                </div>
+                <div>
+                    <span class="text-gray-600">Sender:</span>
+                    <div>{{ shipment.sender_name }}</div>
+                </div>
+                <div>
+                    <span class="text-gray-600">Receiver:</span>
+                    <div>{{ shipment.receiver_name }}</div>
+                </div>
+                <div>
+                    <span class="text-gray-600">Route:</span>
+                    <div>{{ shipment.origin }} → {{ shipment.destination }}</div>
+                </div>
+                <div>
+                    <span class="text-gray-600">Created:</span>
+                    <div>{{ shipment.date_created|date:"M d, Y" }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmation Form -->
+        <form method="POST">
+            {% csrf_token %}
+            <div class="flex justify-end space-x-4">
+                <a href="{% url 'admin_shipments' %}" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors flex items-center space-x-2">
+                    <i class="fas fa-trash"></i>
+                    <span>Delete Shipment</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
